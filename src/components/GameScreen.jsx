@@ -1,16 +1,15 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback } from 'react';
 import Tetromino from './Tetromino';
 
 function Game() {
+    const [landedBlocks, setLandedBlocks] = useState([]);
     const boardWidth = 10;
     const boardHeight = 20;
 
-    const [landedBlocks, setLandedBlocks] = useState([]);
-
-    const handleTetrominoLand = (position, shape) => {
+    const handleTetrominoLand = useCallback((position, shape) => {
         //update the board with landed tetromino
-        setLandedBlocks((prev) => [...prev, { position, shape }]);
-    };
+        setLandedBlocks((prevBlocks) => [...prevBlocks, { position, shape }]);
+    }, []);
 
     return (
         <div className="game-container">
@@ -23,7 +22,11 @@ function Game() {
                     border: '2px solid grey',
                 }}
             >
-                <Tetromino onLand={handleTetrominoLand} boardWidth={boardWidth} />
+                <Tetromino
+                    onLand={handleTetrominoLand}
+                    boardWidth={boardWidth}
+                    landedBlocks={landedBlocks}
+                />
                 {landedBlocks.map((block, index) =>
                     block.shape.map((row, rowIndex) =>
                         row.map((cell, colIndex) => (
