@@ -14,6 +14,8 @@ function Tetromino({ onLand, boardWidth, landedBlocks }) {
     const [position, setPosition] = useState({ x: Math.floor(boardWidth / 2), y: 0});
     const [rotation, setRotation] = useState(0);
     const [shape, setShape] = useState(TETROMINOES[Math.floor(Math.random() * TETROMINOES.length)]);
+    const [speed, setSpeed] = useState(500);
+    const [intervalId, setIntervalId] = useState(null);
 
     const rotateShape = (shape) => {
         return shape[0].map((_, colIndex) =>
@@ -50,26 +52,29 @@ function Tetromino({ onLand, boardWidth, landedBlocks }) {
     };
 
     //Move the tetromino down
+    const moveTertrominoDown = () => {
+        setPosition((prev) => {
+            const nextPosition = { ...prev, y: prev.y + 1 };
+
+            if (checkCollision(landedBlocks, nextPosition, shape)) {
+                //Defer the landing callback to prevent state updates during
+                setTimeout(() => {
+                    onLand(prev, shape); //Trigger Landing
+                }, 0);
+                setShape(TETROMINOES[Math.floor(Math.random() * TETROMINOES.length)]);
+                return {x: Math.floor(boardWidth / 2), y: 0 }; //reset position
+            }
+
+            return nextPosition; //move down
+        });
+    };
+
     useEffect(() => {
-        const interval = setInterval(() => {
-            setPosition((prev) => {
-                const nextPosition = { ...prev, y: prev.y + 1};
+        const interval = setInterval(moveTertrominoDown, speed); //adjust speed
+        setIntervalId(interval);
 
-                if (checkCollision(landedBlocks, nextPosition, shape)) {
-                    //Defer the landing callback to prevent state updates during
-                    setTimeout(() => {
-                        onLand(prev, shape); //Trigger Landing
-                    }, 0);
-                    setShape(TETROMINOES[Math.floor(Math.random() * TETROMINOES.length)]);
-                    return {x: Math.floor(boardWidth / 2), y: 0 }; //reset position
-                }
-
-                return nextPosition; //move down
-            });
-        }, 500); // Adjust the speed as needed
-
-        return () => clearInterval(interval);
-    }, [landedBlocks, shape, onLand, boardWidth]);
+        return () => clearInterval(interval); //cleanup interval on
+    }, [landedBlocks, shape, speed]);
 
     // Keypress handling for movement
     useEffect(() => {
@@ -89,11 +94,34 @@ function Tetromino({ onLand, boardWidth, landedBlocks }) {
                 if (!checkCollision(landedBlocks, position, rotatedShape)) {
                     setShape(rotatedShape);
                 }
+            } else if (event.key === "ArrowDown") {
+                //accelerate downward movement
+                setSpeed(200);
+            } else if (event.key === " ") {
+                //hard drop: move tetromino all the way down
+                let tempPosition = { ...position};
+                while (!checkCollision(landedBlocks, { x: tempPosition.x, y: tempPosition.y + 1}, shape)) {
+                    tempPosition.y += 1;
+                }
+                setPosition(tempPosition);
+                onLand(tempPosition, shape);
+                setShape(TETROMINOES[Math.floor(Math.random() * TETROMINOES.length)]);
+            }
+        };
+
+        const handleKeyUp = (event) => {
+            if (event.key === "ArrowDown") {
+                setSpeed(500); //Reset fall speed
             }
         };
 
         window.addEventListener("keydown", handleKeyPress);
-        return () => window.removeEventListener("keydown", handleKeyPress);
+        window.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyPress);
+            window.removeEventListener("keyup", handleKeyUp);
+        };
     }, [landedBlocks, shape, position]);
 
     return (
