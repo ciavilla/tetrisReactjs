@@ -1,13 +1,104 @@
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #1e3c72, #2a52);
+
+}
+
+.game-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(10, 30px);
   grid-template-rows: repeat(20, 30px);
-  gap: 1px;
-  background-color: grey;
+  background-color: #000;
+  border: 3px solid grey;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-.cell {
-  width: 30px;
-  height: 30px;
-  background-color: black;
+.board div {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #333;
+  box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.tetromino-T { background-color: purple; }
+.tetromino-O { background-color: yellow; }
+.tetromino-I { background-color: cyan; }
+.tetromino-Z { background-color: red; }
+.tetromino-S { background-color: green; }
+.tetromino-L { background-color: orange; }
+.tetromino-J { background-color: blue; }
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+.sidebar h2 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.sidebar button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.sidebar button:hover {
+  background-color: #0056b3;
+}
+
+.game-over {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  z-index: 10;
+}
+
+.game-over h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.game-over button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #ff0000;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.game-over button:hover {
+  background-color: #cc0000;
 }
