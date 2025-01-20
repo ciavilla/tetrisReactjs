@@ -1,72 +1,110 @@
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   background: linear-gradient(135deg, #1e3c72, #2a52);
+  color: white;
 
 }
 
 .game-container {
   display: flex;
-  gap: 20px;
-  align-items: flex-start;
+  gap: 30px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .board {
-  display: grid;
-  grid-template-columns: repeat(10, 30px);
-  grid-template-rows: repeat(20, 30px);
-  background-color: #000;
-  border: 3px solid grey;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  position: relative;
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 3px solid #333;
+  border-radius: 4px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
 }
 
-.board div {
-  width: 20px;
-  height: 20px;
-  border: 1px solid #333;
-  box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.1);
+.cell {
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
 }
 
-.tetromino-T { background-color: purple; }
-.tetromino-O { background-color: yellow; }
-.tetromino-I { background-color: cyan; }
-.tetromino-Z { background-color: red; }
-.tetromino-S { background-color: green; }
-.tetromino-L { background-color: orange; }
-.tetromino-J { background-color: blue; }
+.cell.filled {
+  box-shadow:
+      inset 2px 2px 5px rgba(255, 255, 255, 0.4),
+      inset -2px -2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.tetromino div {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+      inset 2px 2px 5px rgba(255, 255, 255, 0.4),
+      inset -2px -2px 5px rgba(0, 0, 0, 0.3);
+}
 
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  text-align: center;
-  background: rgba(0, 0, 0, 0.5);
+  gap: 20px;
+  min-width: 200px;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-.sidebar h2 {
-  font-size: 1.5rem;
+.sidebar h2, .sidebar h3 {
   margin: 0;
+  text-align: center;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.next-piece {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.next-piece-preview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 10px auto;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
 }
 
 .sidebar button {
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: none;
   border-radius: 5px;
-  background-color: #007bff;
+  background: linear-gradient(to bottom, #4a90e2, #357abd);
   color: white;
+  font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar button:hover {
-  background-color: #0056b3;
+  background: linear-gradient(to bottom, #357abd, #2a5298);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .game-over {
@@ -80,25 +118,60 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: white;
-  z-index: 10;
+  z-index: 100;
 }
 
 .game-over h1 {
-  font-size: 2rem;
+  color: #ff0000;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   margin-bottom: 20px;
 }
 
-.game-over button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  background-color: #ff0000;
+/* Pause overlay */
+.pause-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.5rem;
+  font-weight: bold;
   color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  z-index: 50;
 }
 
-.game-over button:hover {
-  background-color: #cc0000;
+/* Responsive design */
+@media (max-width: 768px) {
+  .game-container {
+      flex-direction: column;
+      gap: 20px;
+  }
+
+  .board {
+      width: 240px;  /* Smaller for mobile */
+      height: 480px;
+  }
+
+  .cell, .tetromino div {
+      width: 22px;
+      height: 22px;
+  }
+
+  .sidebar {
+      min-width: 240px;
+  }
 }
+
+.tetromino-I { background-color: #00f0f0; }
+.tetromino-O { background-color: #f0f000; }
+.tetromino-T { background-color: #a000f0; }
+.tetromino-S { background-color: #00f000; }
+.tetromino-Z { background-color: #f00000; }
+.tetromino-J { background-color: #0000f0; }
+.tetromino-L { background-color: #f0a000; }

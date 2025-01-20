@@ -12,224 +12,222 @@ const TETROMINOES = [
 ];
 
 const getTetrominoColor = (shape) => {
-    switch (JSON.stringify(shape)) {
-        case JSON.stringify([[1, 1, 1], [0, 1, 0]]): return 'purple'; // T-shape
-        case JSON.stringify([[1, 1], [1, 1]]): return 'yellow'; // O-shape
-        case JSON.stringify([[1, 1, 1, 1]]): return 'cyan'; // I-shape
-        case JSON.stringify([[1, 1, 0], [0, 1, 1]]): return 'red'; // Z-shape
-        case JSON.stringify([[0, 1, 1], [1, 1, 0]]): return 'green'; // S-shape
-        case JSON.stringify([[1, 1, 1], [1, 0, 0]]): return 'orange'; // L-shape
-        case JSON.stringify([[1, 1, 1], [0, 0, 1]]): return 'blue'; // J-shape
-        default: return 'grey';
-    }
+    if (shape.length === 2 && shape[0].length === 3 && shape[1][0] === 0) return 'purple'; // T-shape
+    if (shape.length === 1 && shape[0].length === 4) return 'cyan'; // I-shape
+    if (shape.length === 2 && shape[0].length === 2) return 'yellow'; // O-shape
+    if (shape.length === 2 && shape[0][1] === 1 && shape[1][0] === 1) return 'green'; // S-shape
+    if (shape.length === 2 && shape[0][0] === 1 && shape[1][1] === 1) return 'red'; // Z-shape
+    if (shape.length === 2 && shape[0][0] === 1 && shape[1][0] === 1) return 'orange'; // L-shape
+    if (shape.length === 2 && shape[0][1] === 1 && shape[1][1] === 1) return 'blue'; // J-shape
+    return 'gray'; // Default color
 };
 
 const boardWidth = 10;
 const boardHeight = 20;
+const blockSize = 30;
+const initialSpeed = 800;
+const speedIncrement = 50;
+const levelThreshold = 1000;
 
 function GameScreen() {
-    const [board, setBoard] = useState(
+    const [landedBlocks, setLandedBlocks] = useState(
         Array.from({ length: boardHeight }, () => Array(boardWidth).fill(0))
     );
-    const [landedBlocks, setLandedBlocks] = useState(
-        Array.from({ length: boardHeight }, () => Array(boardWidth).fill(null))
-    );
+    const isHandlingPlacement = React.useRef(false);
+    const [level, setLevel] = useState(1);
+    const [speed, setSpeed] = useState(initialSpeed);
+    const [score, setScore] = useState(0);
+    const [gameOver, setGameOver] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
 
-    const generateTetromino = () => {
+    const generateTetromino = useCallback(() => {
         const shape = TETROMINOES[Math.floor(Math.random() * TETROMINOES.length)];
         return {
             shape,
-            position: { x: 4, y: 0 },
-            color: getTetrominoColor(shape),
+            position: { x: Math.floor((boardWidth - shape[0].length) / 2), y: 0 },
+            color: getTetrominoColor(shape)
         };
-    };
+    }, []);
 
-    const resetTetromino = useCallback(() => generateTetromino(), []);
     const [activeTetromino, setActiveTetromino] = useState(generateTetromino);
-
-    const [speed, setSpeed] = useState(500);
-    const [score, setScore] = useState(0);
-    const [gameOver, setGameOver] = useState(false);
+    const [nextTetromino, setNextTetromino] = useState(generateTetromino);
 
     const checkCollision = useCallback((shape, position) => {
         return shape.some((row, rowIndex) =>
             row.some((cell, colIndex) => {
-                if (cell > 0) {
+                if (cell === 0) return false;
                     const x = position.x + colIndex;
                     const y = position.y + rowIndex;
-                    if (
+                    return (
                         y >= boardHeight ||
                         x < 0 ||
                         x >= boardWidth ||
-                        landedBlocks[y]?.[x] > 0
-                    ) {
-                        return true;
-                    }
-                }
-                return false;
-            })
+                        (y >= 0 && landedBlocks[y]?.[x])
+                    );
+                })
         );
     }, [landedBlocks]);
 
-    const checkAndClearRows = useCallback((blocks) => {
+    const updateGridWithTetromino = useCallback((shape, position, color) => {
+        const newLandedBlocks = landedBlocks.map((row) => [...row]);
+
+        shape.forEach((row, rowIndex) => {
+            row.forEach((cell, colIndex) => {
+                if (cell > 0) {
+                    const y = position.y + rowIndex;
+                    const x = position.x + colIndex;
+                    if (y >= 0 && y < boardHeight && x >= 0 && x < boardWidth) {
+                        newLandedBlocks[y][x] = color;
+                    }
+                }
+            });
+        });
+
+        //Check for completed rows and clear them
         let clearedRows = 0;
-        const updatedBlocks = blocks.filter((row) => {
-            if (row.every((cell) => cell > 0)) {
-                clearedRows ++;
+        const updatedBlocks = newLandedBlocks.filter(row => {
+            if (row.every(cell => cell)) {
+                clearedRows++;
                 return false;
             }
             return true;
         });
+
+        // Add empty rows to the top of the grid
         while (updatedBlocks.length < boardHeight) {
             updatedBlocks.unshift(Array(boardWidth).fill(0));
         }
-       setLandedBlocks(updatedBlocks);
-       setScore((prevScore) => prevScore + clearedRows * 100);
 
-       return { updatedBlocks, clearedRows };
+        const newScore = score + (clearedRows * 100 * level);
+        setScore(newScore);
+
+        if (newScore >= level * levelThreshold) {
+            setLevel(prevLevel => prevLevel + 1);
+            setSpeed(prevSpeed => Math.max(prevSpeed - speedIncrement, 100));
+        }
+
+        setLandedBlocks(updatedBlocks);
+        return { updatedBlocks, clearedRows };
+    }, [landedBlocks, score, level]);
+
+    // Handle Tetromino Placement and land
+    const handleTetrominoPlacement = useCallback(() => {
+        if (isHandlingPlacement.current) return;
+        isHandlingPlacement.current = true;
+
+        const { shape, position, color } = activeTetromino;
+        const { updatedBlocks } = updateGridWithTetromino(shape, position, color);
+
+        const isGameOver = updatedBlocks.slice(0, 2).some(row =>
+            row.some(cell => cell !== 0)
+        );
+
+        if (isGameOver) {
+            setGameOver(true);
+        } else {
+            const newTetromino = nextTetromino;
+            setActiveTetromino(newTetromino);
+            setNextTetromino(generateTetromino());
+
+            if (checkCollision(newTetromino.shape, newTetromino.position)){
+                setGameOver(true);
+            }
+        }
+
+        isHandlingPlacement.current = false;
+    }, [activeTetromino, nextTetromino, generateTetromino, updateGridWithTetromino, checkCollision]);
+
+    const rotateShape = useCallback((shape) => {
+        const newShape = shape[0].map((_, colIndex) =>
+            shape.map(row => row[colIndex]).reverse()
+        );
+        return newShape;
     }, []);
 
-    const handleTetrominoLand = useCallback((position, shape, color) => {
-        // Define a new color for the landed tetromino
-        const landedColor = '#ccc'; // Example: Change to a light grey color or any other color you like
 
-        // Create a deep copy of landedBlocks to avoid mutating state directly
-        const newLandedBlocks = landedBlocks.map((row) => [...row]);
+    const handleKeyPress = useCallback((event) => {
+        if (gameOver || isPaused || isHandlingPlacement.current) return;
 
-        // Update only the cells where the tetromino exists
-        shape.forEach((row, rowIndex) => {
-            row.forEach((cell, colIndex) => {
-                if (cell > 0) {
-                    const x = position.x + colIndex;
-                    const y = position.y + rowIndex;
-                    if (y >= 0 && y < boardHeight && x >= 0 && x < boardWidth) {
-                        newLandedBlocks[y][x] = landedColor; // Use the new landed color
-                    }
+        const { shape, position } = activeTetromino;
+
+        switch (event.key) {
+            case 'ArrowLeft':
+                const leftPosition = { ...position, x: position.x - 1 };
+                if (!checkCollision(shape, leftPosition)) {
+                    setActiveTetromino(prev => ({ ...prev, position: leftPosition}));
                 }
-            });
-        });
+                break;
 
-        // Check for and clear completed rows
-        const { updatedBlocks, clearedRows } = checkAndClearRows(newLandedBlocks);
-        setLandedBlocks(updatedBlocks);
-
-        // Update the score based on cleared rows
-        setScore((prev) => prev + clearedRows * 100);
-    }, [landedBlocks, checkAndClearRows]);
-
-
-    const placeTetromino = useCallback((shape, position) => {
-        const newBlocks = landedBlocks.map((row) => [...row]);
-        shape.forEach((row, rowIndex) => {
-            row.forEach((cell, colIndex) => {
-                if (cell > 0) {
-                    const x = position.x + colIndex;
-                    const y = position.y + rowIndex;
-                    if (y >= 0 && y < boardHeight && x >= 0 && x < boardWidth) {
-                        newBlocks[y][x] = 1;
-                    }
+            case 'ArrowRight':
+                const rightPosition = { ...position, x: position.x + 1 };
+                if (!checkCollision(shape, rightPosition)) {
+                    setActiveTetromino(prev => ({ ...prev, position: rightPosition}));
                 }
-            });
-        });
-        setLandedBlocks(newBlocks);
-        checkAndClearRows(newBlocks);
+                break;
 
-        return {landedBlocks, checkAndClearRows};
-    }, [checkAndClearRows, landedBlocks]);
-
-    const moveDown = useCallback(() => {
-        setActiveTetromino((prev) => {
-            const newPosition = { ...prev.position, y: prev.position.y + 1 };
-            if (checkCollision(prev.shape, newPosition)) {
-                handleTetrominoLand(prev.position, prev.shape, prev.color);
-                placeTetromino(prev.shape, prev.position);
-
-                const newTetromino = resetTetromino();
-                if (checkCollision(newTetromino.shape, newTetromino.position)) {
-                  setGameOver(true);
-                }
-                return newTetromino;
-            }
-
-            return { ...prev, position: newPosition };
-        });
-    }, [checkCollision, placeTetromino, resetTetromino, handleTetrominoLand]);
-
-    const rotateShape = (shape) => {
-        return shape[0].map((_, colIndex) => shape.map(row => row[colIndex]).reverse());
-    };
-
-
-        const handleKeyPress = useCallback((event) => {
-            const { shape, position } = activeTetromino;
-            if (event.key === "ArrowLeft") {
-                const nextPosition = { ...position, x: position.x - 1 };
-                if (!checkCollision(shape, nextPosition))
-                    setActiveTetromino({ ...activeTetromino, position: nextPosition });
-            } else if (event.key === "ArrowRight") {
-                const nextPosition = { ...position, x: position.x + 1 };
-                if (!checkCollision(shape, nextPosition))
-                    setActiveTetromino({ ...activeTetromino, position: nextPosition });
-            } else if (event.key === "ArrowUp") {
+            case 'ArrowUp':
                 const rotatedShape = rotateShape(shape);
-                if (!checkCollision(rotatedShape, position))
-                    setActiveTetromino({ ...activeTetromino, shape: rotatedShape });
-            } else if (event.key === "ArrowDown") {
-                //accelerate downward movement
-                moveDown();
-            } else if (event.key === " ") {
-                //hard drop: move tetromino all the way down
-                let tempPosition = { ...position };
-                while (!checkCollision(shape, { ...tempPosition,
-                    y: tempPosition.y + 1,
-                })) {
-                    tempPosition.y += 1;
+                if (!checkCollision(rotatedShape, position)) {
+                    setActiveTetromino(prev => ({ ...prev, shape: rotatedShape}));
                 }
-                handleTetrominoLand(tempPosition, shape);
-                placeTetromino(shape, tempPosition);
-                setActiveTetromino(resetTetromino());
-            }
-        }, [activeTetromino, handleTetrominoLand, checkCollision, moveDown, placeTetromino, resetTetromino]);
+                break;
+
+            case 'ArrowDown':
+                const downPosition = { ...position, y: position.y + 1 };
+                if (!checkCollision(shape, downPosition)) {
+                    setActiveTetromino(prev => ({ ...prev, position: downPosition}));
+                }
+                break;
+
+            case 'p':
+            case 'P':
+                setIsPaused(prev => !prev);
+                break;
+
+            default:
+                break;
+        }
+    }, [activeTetromino, checkCollision, gameOver, isPaused, rotateShape]);
+
 
     useEffect(() => {
-        window.addEventListener("keydown", handleKeyPress);
-        return () => window.removeEventListener("keydown", handleKeyPress);
+        const keyListener = (event) => handleKeyPress(event);
+        window.addEventListener("keydown", keyListener);
+        return () => window.removeEventListener("keydown", keyListener);
     }, [handleKeyPress]);
 
-    const updateTetromino = useCallback(() => {
-        setActiveTetromino((prev) => {
-            const newPosition = { ...prev.position, y: prev.position.y + 1};
-            if (checkCollision(prev.shape, newPosition)) {
-                handleTetrominoLand(prev.position, prev.shape);
-                placeTetromino(prev.shape, prev.position);
-                const newTetromino = resetTetromino();
-                if (checkCollision(newTetromino.shape, newTetromino.position)) {
-                    setGameOver(true);
-                }
-                return newTetromino;
-            }
-            return { ...prev, position: newPosition};
-        });
-    }, [checkCollision, handleTetrominoLand, placeTetromino, resetTetromino, setGameOver]);
-
-
-
     useEffect(() => {
-        if (!gameOver) {
-            const interval = setInterval(updateTetromino, speed); //adjust speed
-            return () => clearInterval(interval); //cleanup interval on
+        if (!gameOver && !isPaused) {
+            const interval = setInterval(() => {
+                if (isHandlingPlacement.current) return;
+
+                setActiveTetromino(prev => {
+                    const newPosition = { ...prev.position, y: prev.position.y + 1};
+                    if ( checkCollision(prev.shape, newPosition)) {
+                        queueMicrotask(() => {
+                            if (!isHandlingPlacement.current) {
+                                handleTetrominoPlacement();
+                            }
+                        });
+                        return prev;
+                    }
+                    return { ...prev, position: newPosition };
+                });
+            }, speed);
+            return () => clearInterval(interval);
         }
-    }, [updateTetromino, speed, gameOver]);
+    }, [gameOver, isPaused, speed, checkCollision, handleTetrominoPlacement, nextTetromino]);
+
 
     const restartGame = () => {
-        // Reset the board and landedBlocks with the correct initial state
-        setBoard(Array.from({ length: boardHeight }, () => Array(boardWidth).fill(0)));
-        setLandedBlocks(Array.from({ length: boardHeight }, () => Array(boardWidth).fill(null)));
-
-        // Reset other game states
+        setLandedBlocks(Array.from({ length: boardHeight }, () => Array(boardWidth).fill(0)));
         setScore(0);
-        setActiveTetromino(resetTetromino());
+        setLevel(1);
+        setSpeed(initialSpeed);
+        setActiveTetromino(generateTetromino());
+        setNextTetromino(generateTetromino());
         setGameOver(false);
+        setIsPaused(false);
     };
 
 
@@ -237,42 +235,54 @@ function GameScreen() {
         <div className="game-container">
             <div className="board"
                 style={{
-                    position: 'relative',
-                    width: boardWidth * 20,
-                    height: boardHeight * 20,
-                    backgroundColor: 'black',
-                    border: '2px solid grey',
+                    width: boardWidth * blockSize,
+                    height: boardHeight * blockSize,
                 }}
             >
                 {landedBlocks.map((row, rowIndex) =>
-                        row.map((cell, colIndex) => (
-                            cell && (
-                                <div
-                                    key={`${rowIndex}-${colIndex}`}
-                                    style={{
-                                        position: 'absolute',
-                                        top:  rowIndex * 20,
-                                        left: colIndex * 20,
-                                        width: 20,
-                                        height: 20,
-                                        backgroundColor: cell || 'transparent',
-                                        border: '1px solid #ddd',
-
-                                    }}
-                                ></div>
-                            )
-                        )
-                    )
-            )}
-                <Tetromino position={activeTetromino.position} shape={activeTetromino.shape} color={activeTetromino.color} />
+                    row.map((cell, colIndex) => (
+                        cell ? (
+                        <div
+                            key={`${rowIndex}-${colIndex}`}
+                            style={{
+                                position: 'absolute',
+                                top: rowIndex * blockSize,
+                                left: colIndex * blockSize,
+                                width: blockSize - 2,
+                                height: blockSize - 2,
+                                backgroundColor: cell,
+                                border: '1px solid rgba(255, 255, 255, 0.1)'
+                            }}
+                        />
+                    ) : null
+                    ))
+                )}
+                <Tetromino {...activeTetromino} />
             </div>
             <div className="sidebar">
                 <h2>Score: {score}</h2>
+                <h3>Level: {level}</h3>
+                <div className='next-piece'>
+                    <h3>Next Piece:</h3>
+                    <div className='next-piece-preview'>
+                        <Tetromino
+                            shape={nextTetromino.shape}
+                            position={{ x: 0, y: 0 }}
+                            color={nextTetromino.color}
+                        />
+                    </div>
+                </div>
                 {gameOver ? (
-                    <button onClick={restartGame}>Restart</button>
+                    <button onClick={restartGame}>Restart Game</button>
                 ) : (
-                    <button onClick={() => setGameOver(true)}>Quit</button>
+                    <>
+                        <button onClick={() => setIsPaused(!isPaused)}>
+                            {isPaused ? 'Resume' : 'Pause'}
+                        </button>
+                        <button onClick={() => setGameOver(true)}>Quit</button>
+                    </>
                 )}
+                {isPaused && <div className='pause-overlay'>PAUSED</div>}
             </div>
         </div>
     );
