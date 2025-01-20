@@ -36,8 +36,8 @@ body {
 
 .cell.filled {
   box-shadow:
-      inset 2px 2px 5px rgba(255, 255, 255, 0.4),
-      inset -2px -2px 5px rgba(0, 0, 0, 0.3);
+    inset 2px 2px 5px rgba(255, 255, 255, 0.4),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .tetromino div {
@@ -45,8 +45,8 @@ body {
   height: 28px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow:
-      inset 2px 2px 5px rgba(255, 255, 255, 0.4),
-      inset -2px -2px 5px rgba(0, 0, 0, 0.3);
+    inset 2px 2px 5px rgba(255, 255, 255, 0.4),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .sidebar {
@@ -60,7 +60,8 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-.sidebar h2, .sidebar h3 {
+.sidebar h2,
+.sidebar h3 {
   margin: 0;
   text-align: center;
   color: #fff;
@@ -149,32 +150,40 @@ body {
 /* Responsive design */
 @media (max-width: 768px) {
   .game-container {
-      flex-direction: column;
-      gap: 20px;
+    flex-direction: column;
+    gap: 20px;
   }
 
   .board {
-      width: 240px;  /* Smaller for mobile */
-      height: 480px;
+    width: 240px;
+    /* Smaller for mobile */
+    height: 480px;
   }
 
-  .cell, .tetromino div {
-      width: 22px;
-      height: 22px;
+  .cell,
+  .tetromino div {
+    width: 22px;
+    height: 22px;
   }
 
   .sidebar {
-      min-width: 240px;
+    min-width: 240px;
   }
 }
 
-.tetromino-I { background-color: #00f0f0; }
-.tetromino-O { background-color: #f0f000; }
-.tetromino-T { background-color: #a000f0; }
-.tetromino-S { background-color: #00f000; }
-.tetromino-Z { background-color: #f00000; }
-.tetromino-J { background-color: #0000f0; }
-.tetromino-L { background-color: #f0a000; }
+.tetromino-I
+
+.tetromino-O
+
+.tetromino-T
+
+.tetromino-S 
+
+.tetromino-Z
+
+.tetromino-J
+
+.tetromino-L
 
 .welcome-screen {
   display: flex;
