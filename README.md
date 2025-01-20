@@ -1,70 +1,32 @@
-# Getting Started with Create React App
+# Game Description
+This is a modern React-based implementation of the classic Tetris game, featuring dynamic gameplay, colorful tetrominoes, and responsive controls. The goal of the game is to stack and clear rows of blocks, strategically fitting tetromino shapes as they descend onto the game board.
+## Features
+-Colorful Tetromino Shapes: Seven distinct shapes (T, O, I, Z, S, L, and J) are represented with vibrant colors to enhance the gaming experience.
+-Dynamic Gameplay:
+    -Blocks automatically move down the board at a set speed.
+    -Players can accelerate their descent or drop them instantly for faster-paced gameplay.
+-Responsive Controls:
+    -Arrow Keys: Move tetrominoes left, right, or rotate them.
+-Line Clearing: Complete horizontal rows are cleared from the board, awarding points and freeing up space for new blocks.
+-Score Tracking: Players earn points for clearing rows, with higher scores for multiple rows cleared simultaneously.
+-Game Over Detection: The game ends if the tetrominoes stack above the top of the board.
+-Restart Option: Players can restart the game at any time, resetting the board and score.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Technical Details
+-The game board is a 10x20 grid, with each cell representing a block.
+-Tetromino collision detection ensures that shapes land properly and do not overlap.
+-Rows that are completely filled are removed, and the board adjusts accordingly to make room for more shapes.
+-The game state is managed using React hooks, with a combination of useState and useEffect for reactivity.
+-The game logic ensures smooth animation, row-clearing mechanics, and intuitive gameplay.
 
-## Available Scripts
+## How To Play:
+  -Start the game to spawn the first tetromino at the top of the grid.
+  -Use the arrow keys to position and rotate the tetrominoes as they descend.
+  -Clear rows by filling them completely with blocks.
+  -Earn points and aim for a high score before the grid fills up.
 
-In the project directory, you can run:
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
