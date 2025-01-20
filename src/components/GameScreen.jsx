@@ -19,7 +19,7 @@ const getTetrominoColor = (shape) => {
     if (shape.length === 2 && shape[0][0] === 1 && shape[1][1] === 1) return 'red'; // Z-shape
     if (shape.length === 2 && shape[0][0] === 1 && shape[1][0] === 1) return 'orange'; // L-shape
     if (shape.length === 2 && shape[0][1] === 1 && shape[1][1] === 1) return 'blue'; // J-shape
-    return 'gray'; // Default color
+    return 'gray';
 };
 
 const boardWidth = 10;
@@ -83,7 +83,7 @@ function GameScreen() {
             });
         });
 
-        //Check for completed rows and clear them
+
         let clearedRows = 0;
         const updatedBlocks = newLandedBlocks.filter(row => {
             if (row.every(cell => cell)) {
@@ -93,7 +93,7 @@ function GameScreen() {
             return true;
         });
 
-        // Add empty rows to the top of the grid
+
         while (updatedBlocks.length < boardHeight) {
             updatedBlocks.unshift(Array(boardWidth).fill(0));
         }
@@ -110,7 +110,7 @@ function GameScreen() {
         return { updatedBlocks, clearedRows };
     }, [landedBlocks, score, level]);
 
-    // Handle Tetromino Placement and land
+
     const handleTetrominoPlacement = useCallback(() => {
         if (isHandlingPlacement.current) return;
         isHandlingPlacement.current = true;
@@ -146,7 +146,14 @@ function GameScreen() {
 
 
     const handleKeyPress = useCallback((event) => {
-        if (gameOver || isPaused || isHandlingPlacement.current) return;
+        if (gameOver || isHandlingPlacement.current) return;
+
+        if (event.key.toLowerCase() === 'p') {
+            setIsPaused((prev) => !prev);
+            return;
+        }
+
+        if (isPaused) return;
 
         const { shape, position } = activeTetromino;
 
@@ -177,11 +184,6 @@ function GameScreen() {
                 if (!checkCollision(shape, downPosition)) {
                     setActiveTetromino(prev => ({ ...prev, position: downPosition}));
                 }
-                break;
-
-            case 'p':
-            case 'P':
-                setIsPaused(prev => !prev);
                 break;
 
             default:
